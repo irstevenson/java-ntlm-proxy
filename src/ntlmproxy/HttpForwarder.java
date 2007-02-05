@@ -43,7 +43,8 @@ public class HttpForwarder extends Thread {
 
 	ExecutorService threadPool = Executors.newCachedThreadPool();
 
-	HttpClient client;
+	HttpClient delegateClient;
+	HttpClient noDelegateClient;
 
 	public HttpForwarder(Properties props, int lport) throws IOException {
 		ssocket = new ServerSocket(lport);
@@ -51,20 +52,19 @@ public class HttpForwarder extends Thread {
 
 		MultiThreadedHttpConnectionManager manager = new MultiThreadedHttpConnectionManager();
 		manager.getParams().setDefaultMaxConnectionsPerHost(20);
-		client = new HttpClient(manager);
-		client.getHostConfiguration().setProxy(
+		delegateClient = new HttpClient(manager);
+		delegateClient.getHostConfiguration().setProxy(
 				props.getProperty(Main.PROXY_DELEGATE_HOST_NAME),
 				Integer.parseInt(props
 						.getProperty(Main.PROXY_DELEGATE_HOST_PORT)));
-		client.getState().setProxyCredentials(
+		delegateClient.getState().setProxyCredentials(
 				new AuthScope(AuthScope.ANY),
 				new NTCredentials(props
-						.getProperty(Main.PROXY_DELEGATE_USERNAME), props
-						.getProperty(Main.PROXY_DELEGATE_PASSWORD), InetAddress
+						.getProperty(Main.PROXY_DELEGATE_USERNAME),
+						Main.delegatePassword, InetAddress
 						.getLocalHost().getHostName(), props
 						.getProperty(Main.PROXY_DELEGATE_DOMAIN)));
-		// client.getParams().client.getParams().setAuthenticationPreemptive(true);
-
+		noDelegateClient = new HttpClient(manager);
 	}
 
 	static List stripHeadersIn = Arrays.asList(new String[] { "Content-Type",
@@ -96,6 +96,11 @@ public class HttpForwarder extends Thread {
 					return;
 				}
 
+				HttpClient client =
+				(Main.noForwardPattern!=null && Main.noForwardPattern.matcher(parser.getUri()).find())?
+						noDelegateClient:delegateClient;
+				
+					
 				if (parser.getMethod().equals("GET"))
 					method = new GetMethod();
 				else if (parser.getMethod().equals("POST"))

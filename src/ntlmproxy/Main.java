@@ -30,29 +30,60 @@ public class Main {
 
 	public static String PROXY_FORWARD = "proxy.forward";
 
+	public static String PROXY_NO_DELEGATE = "proxy.nodelegate";
+
 	public static String PROXY_LOG_WIRE = "proxy.log.wire";
+
+	public static String PROXY_LOG_DISABLE = "proxy.log.disable";
 
 	static final Logger log = LoggerFactory.getLogger(Main.class);
 
+	public static Pattern noForwardPattern;
+	public static String delegatePassword;
+
 	/**
+	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
+
 		try {
 			Class.forName("ntlmproxy.DodgyURI");
-			
+
 			if (!new File(PROPS_FILE).exists())
 				throw new Exception("Can't locate props file: " + PROPS_FILE);
 			Properties props = new Properties();
 			props.load(new FileInputStream(PROPS_FILE));
 			log.info("Starting NTLM proxy");
 
-			if (props.getProperty(Main.PROXY_LOG_WIRE, "false").equals("true")) {
-				 org.apache.log4j.Logger wire =
-				 org.apache.log4j.Logger.getLogger("httpclient.wire");
-				 wire.setLevel(Level.DEBUG);
+			if (props.getProperty(Main.PROXY_LOG_DISABLE, "false").equals(
+					"true")) {
+				org.apache.log4j.Logger.getRootLogger().removeAllAppenders();
+			} else if (props.getProperty(Main.PROXY_LOG_WIRE, "false").equals(
+					"true")) {
+				org.apache.log4j.Logger wire = org.apache.log4j.Logger
+						.getLogger("httpclient.wire");
+				wire.setLevel(Level.DEBUG);
+			}
+
+			String delegatePassword = props.getProperty(Main.PROXY_DELEGATE_PASSWORD);
+			if (delegatePassword == null)
+			{
+				System.out.print("Enter password for delegate proxy: ");
+				try
+				{
+					Class clazz = Class.forName("java.io.Console");
+					delegatePassword = new String((char[])clazz.getMethod("readPassword",null).invoke(System.class.getMethod("console",null).invoke(null,null),null));
+				}catch(Exception e)
+				{
+					throw new Exception("Use Java 1.6 for console passwords.");
+				}
+			}	
+			String noForward = props.getProperty(Main.PROXY_NO_DELEGATE);
+			if (noForward != null) {
+				log.info("No delegate for: " + noForward);
+				noForwardPattern = Pattern.compile(noForward);
 			}
 
 			/*
@@ -84,6 +115,7 @@ public class Main {
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			System.err.println("FATAL: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }
