@@ -61,7 +61,8 @@ public class HttpForwarder extends Thread {
 				new AuthScope(AuthScope.ANY),
 				new NTCredentials(props
 						.getProperty(Main.PROXY_DELEGATE_USERNAME),
-						Main.delegatePassword, InetAddress
+						props
+						.getProperty(Main.PROXY_DELEGATE_PASSWORD), InetAddress
 						.getLocalHost().getHostName(), props
 						.getProperty(Main.PROXY_DELEGATE_DOMAIN)));
 		noDelegateClient = new HttpClient(manager);

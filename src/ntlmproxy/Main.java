@@ -2,6 +2,7 @@ package ntlmproxy;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,11 +36,12 @@ public class Main {
 	public static String PROXY_LOG_WIRE = "proxy.log.wire";
 
 	public static String PROXY_LOG_DISABLE = "proxy.log.disable";
+	
+	public static String CREDENTIALS_METHOD = "credentials.method";
 
 	static final Logger log = LoggerFactory.getLogger(Main.class);
 
 	public static Pattern noForwardPattern;
-	public static String delegatePassword;
 
 	/**
 	 * 
@@ -47,7 +49,7 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
+		System.out.println("Starting NTLM proxy");
 		try {
 			Class.forName("ntlmproxy.DodgyURI");
 
@@ -55,31 +57,25 @@ public class Main {
 				throw new Exception("Can't locate props file: " + PROPS_FILE);
 			Properties props = new Properties();
 			props.load(new FileInputStream(PROPS_FILE));
-			log.info("Starting NTLM proxy");
 
 			if (props.getProperty(Main.PROXY_LOG_DISABLE, "false").equals(
-					"true")) {
-				org.apache.log4j.Logger.getRootLogger().removeAllAppenders();
-			} else if (props.getProperty(Main.PROXY_LOG_WIRE, "false").equals(
-					"true")) {
+					"true"))
+			{
+				//org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
+				for (Enumeration e = LogManager.getCurrentLoggers();e.hasMoreElements();)
+					((org.apache.log4j.Logger)e.nextElement()).setLevel(Level.OFF);
+			}
+			else
+				System.out.println("Logging to ntlm-proxy.log");
+			if (props.getProperty(Main.PROXY_LOG_WIRE, "false").equals("true")) {
 				org.apache.log4j.Logger wire = org.apache.log4j.Logger
 						.getLogger("httpclient.wire");
 				wire.setLevel(Level.DEBUG);
 			}
+			
+			if (!props.containsKey(Main.PROXY_DELEGATE_PASSWORD))
+				Credentials.getCredentials(props);
 
-			String delegatePassword = props.getProperty(Main.PROXY_DELEGATE_PASSWORD);
-			if (delegatePassword == null)
-			{
-				System.out.print("Enter password for delegate proxy: ");
-				try
-				{
-					Class clazz = Class.forName("java.io.Console");
-					delegatePassword = new String((char[])clazz.getMethod("readPassword",null).invoke(System.class.getMethod("console",null).invoke(null,null),null));
-				}catch(Exception e)
-				{
-					throw new Exception("Use Java 1.6 for console passwords.");
-				}
-			}	
 			String noForward = props.getProperty(Main.PROXY_NO_DELEGATE);
 			if (noForward != null) {
 				log.info("No delegate for: " + noForward);
@@ -111,8 +107,8 @@ public class Main {
 							.group(2), Integer.parseInt(m.group(3))).start();
 				}
 			}
-			System.err.println("Logging to ntlm-proxy.log");
-		} catch (Exception e) {
+			System.out.println("Running...");
+		} catch (Throwable e) {
 			log.error(e.getMessage());
 			System.err.println("FATAL: " + e.getMessage());
 			e.printStackTrace();

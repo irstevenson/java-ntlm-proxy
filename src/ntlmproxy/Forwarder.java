@@ -61,7 +61,7 @@ public class Forwarder extends Thread {
 								new NTCredentials(
 										props
 												.getProperty(Main.PROXY_DELEGATE_USERNAME),
-										props
+												props
 												.getProperty(Main.PROXY_DELEGATE_PASSWORD),
 										InetAddress.getLocalHost()
 												.getHostName(),
