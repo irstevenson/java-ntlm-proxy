@@ -1,6 +1,6 @@
 # Introduction
 
-This project was 'forked' from a CSV repository over on SourceForge at:
+This project was 'forked' from a CVS repository over on SourceForge at:
 <https://sourceforge.net/projects/java-ntlm-proxy/> where it had a license of 'Public Domain'.
 
 I use this a fair bit at work and it has a couple of bugs and other areas for improvements. So first
