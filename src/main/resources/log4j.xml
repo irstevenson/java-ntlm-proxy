@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+	<appender name="Console" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p [%t] %C{2} {%F:%L} - %m%n" />
+		</layout>
+	</appender>
+	<appender name="File" class="org.apache.log4j.RollingFileAppender">
+		<param name="maxFileSize" value="5MB" />
+		<param name="maxBackupIndex" value="1" />
+		<param name="file" value="ntlm-proxy.log" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %-5p [%t] %C{2} {%F:%L} - %m%n" />
+		</layout>
+	</appender>
+	<category name="ntlmproxy" additivity="false">
+		<priority value="info" />
+		<appender-ref ref="File" />
+	</category>
+	<category name="org.apache.commons.httpclient" additivity="false">
+		<priority value="info" />
+		<appender-ref ref="File" />
+	</category>
+	<category name="httpclient.wire" additivity="false">
+	    <priority value="info" />
+		<appender-ref ref="File" />
+	</category>
+	
+	<root>
+		<priority value="info" />
+		<appender-ref ref="File" />
+	</root>
+	
+</log4j:configuration>
