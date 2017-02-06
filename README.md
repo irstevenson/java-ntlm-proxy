@@ -30,7 +30,11 @@ felt Shadow had been kept more up to date and it worked. So...)
 
 # Usage
 
-TODO
+TODO, but...
+
+1. Get a copy of the zip package - e.g. `./gradle distZip`
+1. Extract the package, and edit `ntlm-proxy.properties`
+1. Run the tool: `java -jar NTLMProxy.jar`
 
 # ToDo
 
