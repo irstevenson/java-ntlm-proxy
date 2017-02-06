@@ -11,12 +11,19 @@ other directories. Since then, I have also removed a couple of other directories
 
 # Building
 
-To provide a single executable JAR, the gradle [Shadow]() plugin is employed. So to build a 'fat'
-JAR simply:
+To provide a single executable JAR, the gradle [Shadow](https://github.com/johnrengelman/shadow)
+plugin is employed. So to build a 'fat' JAR simply:
 
     ./gradlew shadowJar
 
 Then you'll find your JAR at `build/libs/NTLMProxy.jar`.
+
+How to provide a nicely packaged up tool, then go with:
+
+    ./gradlew distZip
+
+You'll then find a new zip located at `build/distributions/NTLMProxy.zip`. This zip can be extracted
+into a folder and then run from there.
 
 (Note, previously the tool was packaged with [One-JAR](http://one-jar.sourceforge.net/), however I
 felt Shadow had been kept more up to date and it worked. So...)
@@ -24,3 +31,10 @@ felt Shadow had been kept more up to date and it worked. So...)
 # Usage
 
 TODO
+
+# ToDo
+
+1. Make sure that the Swing GUI still works - due to the code there having to simply be a
+   decompilation;
+1. Add Usage documentation - which should also be included in the distributable (so maybe a
+   `src/main/dist/README.md` file (and just link to from the Usage section above).

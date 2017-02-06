@@ -3,6 +3,7 @@ plugins {
 }
 
 apply plugin: 'java'
+apply plugin: 'distribution'
 
 repositories {
     jcenter()
@@ -24,3 +25,16 @@ shadowJar {
     classifier = null
     version = null
 }
+
+distributions {
+    main {
+        baseName = 'NTLMProxy'
+        contents {
+            from( "${buildDir}/libs" ) {
+                include 'NTLMProxy.jar'
+            }
+        }
+    }
+}
+
+distZip.dependsOn shadowJar
