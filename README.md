@@ -11,7 +11,15 @@ other directories. Since then, I have also removed a couple of other directories
 
 # Building
 
-TODO
+To provide a single executable JAR, the gradle [Shadow]() plugin is employed. So to build a 'fat'
+JAR simply:
+
+    ./gradlew shadowJar
+
+Then you'll find your JAR at `build/libs/NTLMProxy.jar`.
+
+(Note, previously the tool was packaged with [One-JAR](http://one-jar.sourceforge.net/), however I
+felt Shadow had been kept more up to date and it worked. So...)
 
 # Usage
 
