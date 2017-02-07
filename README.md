@@ -34,16 +34,17 @@ felt Shadow had been kept more up to date and it worked. So...)
 
 # Usage
 
-TODO, but...
+The quick version:
 
 1. Get a copy of the zip package - e.g. `./gradle distZip`
 1. Extract the package, and edit `ntlm-proxy.properties`
 1. Run the tool: `java -jar NTLMProxy.jar`
 
+Need more, see the [full version](src/main/dist/Usage.md).
+
 # ToDo
 
-1. Add Usage documentation - which should also be included in the distributable (so maybe a
-   `src/main/dist/README.md` file (and just link to from the Usage section above).
+1. Complete usage documentation in `src/main/dist/Usage.md`.
 1. Sort out license file - on SF it was simply Public Domain, but would be good to add a LICENSE
    file for that. And do I simply place the copyright notice pointing back to original author  - not
    that I have their name...
