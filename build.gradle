@@ -5,6 +5,17 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'distribution'
 
+// ** JVM source/target settings ** //
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// ** Project Settings ** //
+
+version = '1.1-SNAPSHOT'
+def buildTime = new Date().format("yyyy-MM-dd HH:mm")
+
+
 repositories {
     jcenter()
 }
@@ -16,7 +27,10 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'ntlmproxy.Main'
+        attributes( 'Main-Class': 'ntlmproxy.Main',
+                    'Specification-Title': 'NTLM Proxy',
+                    'Specification-Version': version,
+                    'X-Build-Time': buildTime )
     }
 }
 
@@ -38,3 +52,8 @@ distributions {
 }
 
 distZip.dependsOn shadowJar
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.3'
+}
+
