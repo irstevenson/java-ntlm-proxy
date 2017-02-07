@@ -42,8 +42,6 @@ TODO, but...
 
 # ToDo
 
-1. Make sure that the Swing GUI still works - due to the code there having to simply be a
-   decompilation;
 1. Add Usage documentation - which should also be included in the distributable (so maybe a
    `src/main/dist/README.md` file (and just link to from the Usage section above).
 1. Sort out license file - on SF it was simply Public Domain, but would be good to add a LICENSE

@@ -119,16 +119,14 @@ public class Credentials implements ActionListener {
             }
         }
 
-        Credentials credentials1 = new Credentials(props);
+        final Credentials credentials1 = new Credentials(props);
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         synchronized(credentials1) {
-            // Nested class was missing, decompilation didn't greatly help,
-            // so for now a place holder...
-            SwingUtilities.invokeLater(
-                    new Runnable() {
-                        public void run() {}
-                    }
-            );
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    credentials1.createAndShowGUI();
+                }
+            });
             credentials1.wait();
         }
     }
