@@ -6,12 +6,12 @@ This project was 'forked' from a CVS repository over on SourceForge at:
 I use this a fair bit at work and it has a couple of bugs and other areas for improvements. So first
 step was to get to where I can easily access the code and work on.
 
-In the migration, I did only brought across the main directory which had the source - there was some
-others, but mainly intermediate files. Since then, I have also removed a couple of other directories.
+In the migration, I only brought across the main directory which had the source - there was some
+others, but mainly intermediate files. Since then I've also removed a couple of other directories.
 
 Also found after migrating and attempting a build that the main class for the Swing UI was missing.
-To get things building I've simply decompiled that and hacked it around a bit. It's not a feature I
-normally use, however I'll look into making sure it still works when time permits.
+To get things building I've simply included the decompiled class from the SourceForge download. All
+appears to still work.
 
 # Building
 
