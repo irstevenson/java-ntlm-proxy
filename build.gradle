@@ -21,8 +21,8 @@ repositories {
 }
 
 dependencies {
-    compile 'commons-httpclient:commons-httpclient:3.1-beta1'
-    compile 'org.slf4j:slf4j-log4j12:1.1.0'
+    compile 'commons-httpclient:commons-httpclient:3.1'
+    compile 'org.slf4j:slf4j-log4j12:1.7.25'
 }
 
 jar {
