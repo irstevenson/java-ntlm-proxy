@@ -49,10 +49,12 @@ public class HttpParser extends InputStream {
 	}
 
 	public boolean parse() throws IOException, ParseException {
-		log.debug("hee");
+		log.debug("parse() - START");
 		index += is.read(buffer, index, buffer.length - index);
 		String line = new String(buffer);
 		log.debug(line);
+
+		// Look for split between message headers and message body
 		int splitAt = line.indexOf("\r\n\r\n");
 		if (splitAt == -1)
 			return false;
@@ -82,7 +84,7 @@ public class HttpParser extends InputStream {
 			if (header.length != 2)
 				throw new IOException("Bad Header:" + headerLines[i]);
 			Header h = headers[i - 1] = new Header(header[0], header[1]);
-			log.debug(h.toExternalForm());
+			log.debug(h.toExternalForm().trim());
 			if (h.getName().equals("Content-Type"))
 				this.contentType = h.getValue();
 			else if (h.getName().equals("Content-Length"))
@@ -91,6 +93,7 @@ public class HttpParser extends InputStream {
 
 		}
 
+		log.debug( "parse() - END");
 		return true;
 	}
 

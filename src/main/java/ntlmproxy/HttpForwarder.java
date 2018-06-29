@@ -144,7 +144,7 @@ public class HttpForwarder extends Thread {
 					if (stripHeadersOut.contains(headers[i]))
 						continue;
 					os.write(headers[i].toExternalForm().getBytes());
-					log.debug(headers[i].toExternalForm());
+					log.debug(headers[i].toExternalForm().trim());
 				}
 
 				InputStream is = method.getResponseBodyAsStream();
