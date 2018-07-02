@@ -1,5 +1,6 @@
 package ntlmproxy;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,9 +51,14 @@ public class HttpParser extends InputStream {
 
 	public boolean parse() throws IOException, ParseException {
 		log.debug("parse() - START");
-		index += is.read(buffer, index, buffer.length - index);
+		log.debug("index: " + index);
+		final int bytesRead = is.read(buffer, index, buffer.length - index);
+		if( bytesRead == -1 ) {
+			throw new EOFException( "No more data available from input stream." );
+		}
+		index += bytesRead;
 		String line = new String(buffer);
-		log.debug(line);
+		log.debug("data read: [" + line + "]");
 
 		// Look for split between message headers and message body
 		int splitAt = line.indexOf("\r\n\r\n");
@@ -67,7 +73,7 @@ public class HttpParser extends InputStream {
 		String[] headerLines = line.split("\r\n");
 		if (headerLines.length == 0)
 			throw new IOException("Bad HTTP header");
-		String[] httpStuff = ((String) headerLines[0]).split(" ");
+		String[] httpStuff = headerLines[0].split(" ");
 		if (httpStuff.length != 3)
 			throw new IOException("Bad HTTP header: " + httpStuff.length);
 

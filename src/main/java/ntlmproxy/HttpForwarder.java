@@ -84,8 +84,9 @@ public class HttpForwarder extends Thread {
 		}
 
 		public void run() {
-			try {
+			log.debug("run() - START");
 
+			try {
 				HttpParser parser = new HttpParser(localSocket.getInputStream());
 				HttpMethod method = null;
 				try {
@@ -125,28 +126,34 @@ public class HttpForwarder extends Thread {
 				method.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 				// method.getParams().makeLenient();
 
+				log.debug("Preparing headers for request to proxy.");
 				for (int i = 0; i < parser.getHeaders().length; i++) {
 					Header h = parser.getHeaders()[i];
-					log.debug(h.getName());
 					if (stripHeadersIn.contains(h.getName()))
 						continue;
+					log.debug("... adding: " + h.getName());
 					method.addRequestHeader(h);
 				}
 
+				log.debug("Sending request to proxy");
 				client.executeMethod(method);
+				String statusLine = method.getStatusLine().toString();
+				log.debug("Proxy status line: " + statusLine);
 				localSocket.shutdownInput();
 				OutputStream os = localSocket.getOutputStream();
-				os.write(method.getStatusLine().toString().getBytes());
+				os.write(statusLine.getBytes());
 				os.write("\r\n".getBytes());
-				log.debug(method.getStatusLine().toString());
+
 				Header[] headers = method.getResponseHeaders();
+				log.debug("Sending proxy response headers to client:");
 				for (int i = 0; i < headers.length; i++) {
 					if (stripHeadersOut.contains(headers[i]))
 						continue;
 					os.write(headers[i].toExternalForm().getBytes());
-					log.debug(headers[i].toExternalForm().trim());
+					log.debug("> " + headers[i].toExternalForm().trim());
 				}
 
+				log.debug("Sending proxy response body to client.");
 				InputStream is = method.getResponseBodyAsStream();
 				if (is != null) {
 					os.write("\r\n".getBytes());
@@ -154,12 +161,15 @@ public class HttpForwarder extends Thread {
 					// is.close();
 				}
 
+				log.debug("Closing connection and stream.");
 				method.releaseConnection();
 				localSocket.close();
 
 			} catch (Exception e) {
 				log.debug(e.getMessage(), e);
 			}
+
+			log.debug("run() - END");
 		}
 	}
 
