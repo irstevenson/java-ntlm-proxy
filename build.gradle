@@ -18,11 +18,15 @@ def buildTime = new Date().format("yyyy-MM-dd HH:mm")
 
 repositories {
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
     compile 'commons-httpclient:commons-httpclient:3.1'
     compile 'org.slf4j:slf4j-log4j12:1.7.25'
+
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.2.0'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.2.0'
 }
 
 jar {
