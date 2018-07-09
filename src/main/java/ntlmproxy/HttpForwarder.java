@@ -14,14 +14,7 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.commons.httpclient.ConnectMethod;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-import org.apache.commons.httpclient.NTCredentials;
-import org.apache.commons.httpclient.ProxyClient;
-import org.apache.commons.httpclient.URI;
+import org.apache.commons.httpclient.*;
 import org.apache.commons.httpclient.ProxyClient.ConnectResponse;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
@@ -35,7 +28,7 @@ import org.apache.commons.httpclient.cookie.CookiePolicy;
 
 public class HttpForwarder extends Thread {
 
-	final Logger log = LoggerFactory.getLogger(HttpForwarder.class);
+	private final Logger log = LoggerFactory.getLogger(HttpForwarder.class);
 
 	ServerSocket ssocket;
 
@@ -68,16 +61,17 @@ public class HttpForwarder extends Thread {
 		noDelegateClient = new HttpClient(manager);
 	}
 
-	static List stripHeadersIn = Arrays.asList(new String[] { "Content-Type",
-			"Content-Length", "Proxy-Connection" });
+	static List stripHeadersIn = Arrays.asList(
+	        "Content-Type",
+            "Content-Length",
+            "Proxy-Connection");
 
-	static List stripHeadersOut = Arrays.asList(new String[] { "Proxy-Authentication",
-			"Proxy-Authorization" });
+	static List stripHeadersOut = Arrays.asList(
+	        "Proxy-Authentication",
+            "Proxy-Authorization");
 
 	class Handler implements Runnable {
 		Socket localSocket;
-
-		ByteBuffer buffer = ByteBuffer.allocate(8192);
 
 		public Handler(Socket localSocket) {
 			this.localSocket = localSocket;
@@ -87,48 +81,52 @@ public class HttpForwarder extends Thread {
 			log.debug("run() - START");
 
 			try {
-				HttpParser parser = new HttpParser(localSocket.getInputStream());
-				HttpMethod method = null;
-				try {
-					while (!parser.parse())
-						;
-				} catch (IOException e) {
-					log.warn(e.getMessage(), e);
-					parser.close();
-					return;
-				}
+                HttpHeaderParser headerParser = new HttpHeaderParser(
+                        readStartlineAndHeaders(localSocket.getInputStream()));
 
-				HttpClient client =
-				(Main.noForwardPattern!=null && Main.noForwardPattern.matcher(parser.getUri()).find())?
-						noDelegateClient:delegateClient;
-				
-					
-				if (parser.getMethod().equals("GET"))
-					method = new GetMethod();
-				else if (parser.getMethod().equals("POST"))
-					method = new PostMethod();
-				else if (parser.getMethod().equals("HEAD"))
-					method = new HeadMethod();
-				else if (parser.getMethod().equals("CONNECT")) {
-					doConnect(parser, localSocket.getOutputStream());
-					return;
-				} else
-					throw new Exception("Unknown method: " + parser.getMethod());
+                HttpClient client =
+                        (Main.noForwardPattern != null
+                                && Main.noForwardPattern.matcher(headerParser.getUri()).find())
+                                ? noDelegateClient
+                                : delegateClient;
+
+                HttpMethod method;
+                switch (headerParser.getMethod()) {
+                    case "GET":
+                        method = new GetMethod();
+                        break;
+                    case "POST":
+                        method = new PostMethod();
+                        break;
+                    case "HEAD":
+                        method = new HeadMethod();
+                        break;
+                    case "CONNECT":
+                        doConnect(
+                                headerParser.getUri(),
+                                localSocket.getInputStream(),
+                                localSocket.getOutputStream());
+                        return;
+                    default:
+                        throw new Exception("Unknown method: " + headerParser.getMethod());
+                }
 				if (method instanceof EntityEnclosingMethod) {
 					// log.debug(new String(new char[] { (char) bis.read()}));
 					EntityEnclosingMethod method2 = (EntityEnclosingMethod) method;
-					method2
-							.setRequestEntity(new StreamingRequestEntity(parser));
+					method2.setRequestEntity(
+					        new StreamingRequestEntity(
+					                headerParser,
+                                    localSocket.getInputStream()));
 					// method2.getParams().set
 				}
-				method.setURI(new URI(parser.getUri(),true));
+				method.setURI(new URI(headerParser.getUri(),true));
 				method.setFollowRedirects(false);
 				method.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 				// method.getParams().makeLenient();
 
 				log.debug("Preparing headers for request to proxy.");
-				for (int i = 0; i < parser.getHeaders().length; i++) {
-					Header h = parser.getHeaders()[i];
+				for (int i = 0; i < headerParser.getHeaders().length; i++) {
+					Header h = headerParser.getHeaders()[i];
 					if (stripHeadersIn.contains(h.getName()))
 						continue;
 					log.debug("... adding: " + h.getName());
@@ -191,8 +189,8 @@ public class HttpForwarder extends Thread {
 		ssocket.close();
 	}
 
-	void doConnect(HttpParser parser, OutputStream os) {
-		String[] uri = parser.getUri().split(":");
+	void doConnect(String fullUri, InputStream is, OutputStream os) {
+		String[] uri = fullUri.split(":");
 		ProxyClient client = new ProxyClient();
 		client.getHostConfiguration().setHost(uri[0], Integer.parseInt(uri[1]));
 		client.getHostConfiguration().setProxy(
@@ -223,9 +221,9 @@ public class HttpForwarder extends Thread {
 					.getBytes());
 
 			os.write("\r\n\r\n".getBytes());
-			threadPool.execute(new Piper(parser, remoteSocket.getOutputStream()));
+			threadPool.execute(new Piper(is, remoteSocket.getOutputStream()));
 			new Piper(remoteSocket.getInputStream(), os).run();
-			parser.close();
+			is.close();
 			os.close();
 		} catch (Exception e) {
 			log.debug(e.getMessage(), e);
@@ -242,7 +240,7 @@ public class HttpForwarder extends Thread {
 			} catch (IOException e) {
 			}
 			try {
-				parser.close();
+				is.close();
 			} catch (IOException e) {
 			}
 			/*
@@ -252,4 +250,24 @@ public class HttpForwarder extends Thread {
 
 		}
 	}
+
+    private String readStartlineAndHeaders(InputStream input) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        while (true) {
+            byte[] line = HttpParser.readRawLine(input);
+            if (line == null || line.length < 1) {
+                break;
+            }
+            if (line.length == 2 && line[0] == '\r' && line[1] == '\n' ) {
+            	// blank line found - ideally breaking headers from body
+				break;
+			}
+            stringBuilder.append(new String(line));
+        }
+        if (stringBuilder.length() < 1) {
+            throw new IOException("Invalid HTTP request - no content!");
+        }
+
+        return stringBuilder.toString();
+    }
 }

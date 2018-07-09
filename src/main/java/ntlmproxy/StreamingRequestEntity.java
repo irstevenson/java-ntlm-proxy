@@ -1,19 +1,21 @@
 package ntlmproxy;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 import org.apache.commons.httpclient.methods.RequestEntity;
 
 public class StreamingRequestEntity implements RequestEntity {
 
-	HttpParser parser;
+	private HttpHeaderParser parser;
+	private InputStream input;
 
-	byte[] repeatable;
+	private byte[] repeatable;
 
-	public StreamingRequestEntity(HttpParser parser) {
+	public StreamingRequestEntity(HttpHeaderParser parser, InputStream is ) {
 		this.parser = parser;
+		this.input = is;
 	}
 
 	public long getContentLength() {
@@ -21,12 +23,10 @@ public class StreamingRequestEntity implements RequestEntity {
 	}
 
 	public String getContentType() {
-		// TODO Auto-generated method stub
 		return parser.getContentType();
 	}
 
 	public boolean isRepeatable() {
-		// TODO Auto-generated method stub
 		return true;
 	}
 
@@ -36,7 +36,7 @@ public class StreamingRequestEntity implements RequestEntity {
 			repeatable = new byte[(int) this.getContentLength()];
 			long length = this.getContentLength();
 			for (int i = 0; i < length; i++)
-				repeatable[i] = (byte) parser.read();
+				repeatable[i] = (byte) input.read();
 		}
 		out.write(repeatable);
 
