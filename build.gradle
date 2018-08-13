@@ -12,7 +12,7 @@ targetCompatibility = 1.8
 
 // ** Project Settings ** //
 
-version = '1.1-SNAPSHOT'
+version = '1.1'
 def buildTime = new Date().format("yyyy-MM-dd HH:mm")
 
 
